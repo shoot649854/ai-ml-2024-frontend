@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
-import { useEffect, useState, ChangeEvent } from "react";
-import { Box, TextField, Typography, Button, IconButton, inputLabelClasses } from '@mui/material';
+import { useState, ChangeEvent } from "react";
+import { Box, TextField, Typography, IconButton } from '@mui/material';
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { TMessage } from "@/global/types";
 import AWS from 'aws-sdk';
@@ -70,13 +70,6 @@ export default function Home() {
     setFile(file);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
-      setFile(uploadedFile);
-    }
-  };
-
   const startRecognition = () => {
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
@@ -137,9 +130,27 @@ export default function Home() {
   };
 
   return (
-    <Box className="flex flex-col h-screen bg-gray-100">
-      <Box className="flex flex-row justify-center items-center bg-green-500 p-4">
-        <Typography className="text-white text-2xl">Bedrock PDF Search</Typography>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',  // equivalent to 'h-screen' in TailwindCSS
+        bgcolor: 'grey.50'  // 'bg-gray-50' equivalent in MUI theme colors
+      }}
+    >
+      <Box 
+        sx={{
+          display: 'flex', 
+          flexDirection: 'row', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          backgroundColor: '#3B82F6', 
+          padding: '16px', 
+          // borderTopLeftRadius: '16px',
+          // borderTopRightRadius: '16px'
+        }}
+      >
+        <Typography sx={{ color: 'white', fontSize: '1.25rem' }}>Bedrock PDF Search</Typography>
       </Box>
       <Box className="flex flex-col flex-grow overflow-y-scroll bg-white">
         {messages.map((message, index) => (
