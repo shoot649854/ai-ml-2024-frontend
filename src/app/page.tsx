@@ -1,12 +1,10 @@
 "use client";
 import React from 'react';
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { Box, TextField, Typography, Button, IconButton, inputLabelClasses } from '@mui/material';
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { TMessage } from "@/global/types";
 import AWS from 'aws-sdk';
-
-// import Form from "@/component/Form";
 
 export default function Home() {
   const [input, setInput] = React.useState("");
@@ -14,67 +12,16 @@ export default function Home() {
   const [messages, setMessages] = useState<TMessage[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [file, setFile] = useState(null);
-
-  // Function to upload file to s3
-  const uploadFile = async () => {
-    // S3 Bucket Name
-    const S3_BUCKET = "bucket-name";
-
-    // S3 Region
-    const REGION = "region";
-
-    // S3 Credentials
-    AWS.config.update({
-      accessKeyId: "youraccesskeyhere",
-      secretAccessKey: "yoursecretaccesskeyhere",
-    });
-    const s3 = new AWS.S3({
-      params: { Bucket: S3_BUCKET },
-      region: REGION,
-    });
-
-    // Files Parameters
-
-    const params = {
-      Bucket: S3_BUCKET,
-      Key: file.name,
-      Body: file,
-    };
-
-    // Uploading file to s3
-
-    var upload = s3
-      .putObject(params)
-      .on("httpUploadProgress", (evt) => {
-        // File uploading progress
-        console.log(
-          "Uploading " + parseInt((evt.loaded * 100) / evt.total) + "%"
-        );
-      })
-      .promise();
-
-    await upload.then((err, data) => {
-      console.log(err);
-      // Fille successfully uploaded
-      alert("File uploaded successfully.");
-    });
-  };
-  // Function to handle file and store it to file state
-  const handleFileChange = (e) => {
-    // Uploaded file
-    const file = e.target.files[0];
-    // Changing file state
-    setFile(file);
-  };
+  const [file, setFile] = useState<File | null>(null);
 
   const uploadFile = async (file: File) => {
-    const S3_BUCKET = "bucket-name";
-    const REGION = "region";
+    const S3_BUCKET = process.env.NEXT_PUBLIC_AWS_Bucket || "";
+    const REGION = process.env.NEXT_PUBLIC_AWS_DEFAULT_REGION || "";
+    console.log(S3_BUCKET);
 
     AWS.config.update({
-      accessKeyId: "youraccesskeyhere",
-      secretAccessKey: "yoursecretaccesskeyhere",
+      accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY,
     });
     const s3 = new AWS.S3({
       params: { Bucket: S3_BUCKET },
@@ -101,7 +48,7 @@ export default function Home() {
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
+    const file = e.target.files ? e.target.files[0] : null;
     if (!file) {
       console.error("No file selected.");
       return;
@@ -112,22 +59,22 @@ export default function Home() {
       return;
     }
 
-    const maxFileSize = 5 * 1024 * 1024;
+    const maxFileSize = 5 * 1024 * 1024; // 5 MB
     if (file.size > maxFileSize) {
       console.error("File is too large. Maximum allowed size is 5 MB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (loadEvent) => {
-      // const fileContent = loadEvent.target.result;
-    };
+    console.log("Here is output")
 
-    reader.onerror = (error) => {
-      console.error("Error reading file:", error);
-    };
+    setFile(file);
+  };
 
-    reader.readAsDataURL(file);
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const uploadedFile = e.target.files?.[0];
+    if (uploadedFile) {
+      setFile(uploadedFile);
+    }
   };
 
   const startRecognition = () => {
@@ -150,8 +97,13 @@ export default function Home() {
     recognition.start();
   };
 
-  const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+  const sendMessage = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSending(true);
+
+    if (file) {
+      await uploadFile(file);
+    }
 
     if (input !== "" || file) {
       const formData = new FormData();
@@ -240,6 +192,7 @@ export default function Home() {
             <input
               type="file"
               hidden
+              ref={fileInputRef}
               onChange={handleFileInput}
               accept="application/pdf"
             />
