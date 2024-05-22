@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "ai-ml-2024-frontend"
+version = "0.1.0"
+description = ""
+authors = ["github-actions <jojoto8845@icloud.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+launchdarkly-server-sdk = "^9.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
