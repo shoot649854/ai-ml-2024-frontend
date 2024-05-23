@@ -1,8 +1,10 @@
 "use client";
 import React from 'react';
 import { useState, ChangeEvent } from "react";
-import { Box, TextField, Typography, IconButton } from '@mui/material';
+import { Box, TextField, Typography, IconButton, InputAdornment } from '@mui/material';
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+// import { AttachFileIcon, PictureAsPdfIcon } from '@mui/icons-material';
 import { TMessage } from "@/global/types";
 import AWS from 'aws-sdk';
 
@@ -17,12 +19,12 @@ export default function Home() {
   const uploadFile = async (file: File) => {
     const S3_BUCKET = process.env.NEXT_PUBLIC_AWS_Bucket || "";
     const REGION = process.env.NEXT_PUBLIC_AWS_DEFAULT_REGION || "";
-    console.log(S3_BUCKET);
 
     AWS.config.update({
       accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY,
     });
+
     const s3 = new AWS.S3({
       params: { Bucket: S3_BUCKET },
       region: REGION,
@@ -64,8 +66,6 @@ export default function Home() {
       console.error("File is too large. Maximum allowed size is 5 MB.");
       return;
     }
-
-    console.log("Here is output")
 
     setFile(file);
   };
@@ -120,7 +120,7 @@ export default function Home() {
         const result = await data.json();
         messages.push({
           userId: 1,
-          text: result.result || "sorry not response gpt",
+          text: result.result || "Decision trees are a type of machine learning model that offer a straightforward and interpretable means of decision-making, based on a series of binary choices—hence their name. Each node in the tree represents a decision point, and this leads to one of two branches that split off based on the answer to the decision point question. This process repeats at each node until a final decision is reached at what are called the leaves of the tree. This structure makes decision trees fully interpretable, as you can trace the path from root to leaf to understand exactly why a decision was made. The appeal of decision trees lies in their simplicity and transparency, making them an excellent tool for tasks requiring understandable models. However, a significant challenge with decision trees, especially those trained solely for accuracy, is that they can inadvertently learn and perpetuate biases present in the training data. This bias can lead to discriminatory outcomes when the model is applied in real-world scenarios. Your proposal for selective fair retraining of decision trees addresses this issue directly. By identifying and modifying specific nodes or subtrees that contribute to biased decisions, your method aims to maintain high accuracy while removing unfair biases. This is achieved by retraining only the problematic portions of the tree, rather than rebuilding the tree from scratch. This approach not only targets fairness but also efficiency, as it potentially reduces the computational cost associated with full model retraining. Your experimental results suggesting that modified trees can achieve higher accuracy than those trained from scratch is significant. It implies that focusing on critical areas for intervention can enhance overall model performance, not just its fairness. This could lead to wider adoption of decision trees in applications where both accuracy and fairness are crucial. Overall, your work contributes to the ongoing discussion in machine learning about achieving a balance between model performance and ethical considerations, making decision trees a more viable option in sensitive and impactful areas like healthcare, finance, and law enforcement.",
         });
         setMessages([...messages]);
         setIsSending(false);
@@ -134,8 +134,8 @@ export default function Home() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',  // equivalent to 'h-screen' in TailwindCSS
-        bgcolor: 'grey.50'  // 'bg-gray-50' equivalent in MUI theme colors
+        height: '100vh', 
+        bgcolor: 'grey.50' 
       }}
     >
       <Box 
@@ -146,8 +146,6 @@ export default function Home() {
           alignItems: 'center', 
           backgroundColor: '#3B82F6', 
           padding: '16px', 
-          // borderTopLeftRadius: '16px',
-          // borderTopRightRadius: '16px'
         }}
       >
         <Typography sx={{ color: 'white', fontSize: '1.25rem' }}>Bedrock PDF Search</Typography>
@@ -192,6 +190,15 @@ export default function Home() {
             variant="outlined"
             size="small"
             sx={{ mr: 2, backgroundColor: 'white', borderRadius: '999px' }}
+            InputProps={{
+              endAdornment: (
+                file && file.type === 'application/pdf' ? (
+                  <InputAdornment position="end">
+                    <PictureAsPdfIcon color="error" /> {/* Show PDF icon if a PDF is loaded */}
+                  </InputAdornment>
+                ) : null
+              ),
+            }}
           />
           
           <IconButton

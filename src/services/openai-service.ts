@@ -1,31 +1,27 @@
-import { Configuration, OpenAIApi } from 'openai';
+import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 
 export class OpenaiService {
-  private static instance: OpenAIApi | undefined;
-  private static get OpenAIApiInstance(): OpenAIApi {
-    if (this.instance) {
-      return this.instance;
+  private static clientInstance: OpenAIClient | undefined;
+  private static endpoint = process.env["ENDPOINT"] || "<endpoint>";
+  private static azureApiKey = process.env["AZURE_API_KEY"] || "<api key>";
+
+  private static get client(): OpenAIClient {
+    if (!this.clientInstance) {
+      this.clientInstance = new OpenAIClient(this.endpoint, new AzureKeyCredential(this.azureApiKey));
     }
-    const configuration = new Configuration({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-    this.instance = new OpenAIApi(configuration);
-    return this.instance;
+    return this.clientInstance;
   }
 
-  static async postChat(prop: { prompt: string }): Promise<string | undefined> {
+  static async postChat(prompt: string): Promise<string | undefined> {
     try {
-      const response = await this.OpenAIApiInstance.createChatCompletion({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prop.prompt }],
-      });
-      if (response.status !== 200) {
-        console.log(`status = ${response.status} : `, response.statusText);
-      }
+      const deploymentId = "gpt-4";
+      const result = await this.client.getChatCompletions(deploymentId, [
+        { role: "user", content: prompt }
+      ]);
 
-      return response.data.choices[0].message?.content;
+      return result.choices[0].message?.content;
     } catch (e) {
-      console.log(e);
+      console.error("Error in OpenaiService.postChat:", e);
     }
   }
 }
